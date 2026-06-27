@@ -1,0 +1,2843 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Football Tournament Manager</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --control: #ffffff;
+      --control-hover: #f8fafc;
+      --section: #f8fafc;
+      --text: #172033;
+      --muted: #627086;
+      --line: #d9e1ec;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --success: #15803d;
+      --soft: #eef4ff;
+      --notice-bg: #eff6ff;
+      --notice-border: #bfdbfe;
+      --notice-text: #1e3a8a;
+      --radius: 8px;
+    }
+
+    body[data-theme="dark"] {
+      --bg: #0f172a;
+      --panel: #111827;
+      --control: #1f2937;
+      --control-hover: #273449;
+      --section: #162033;
+      --text: #e5e7eb;
+      --muted: #a7b0c0;
+      --line: #334155;
+      --primary: #60a5fa;
+      --primary-dark: #3b82f6;
+      --danger: #f87171;
+      --success: #4ade80;
+      --soft: #1e3a5f;
+      --notice-bg: #10233f;
+      --notice-border: #1d4ed8;
+      --notice-text: #bfdbfe;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 15px;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+      min-height: 44px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--control);
+      color: var(--text);
+      padding: 9px 13px;
+      cursor: pointer;
+      line-height: 1.2;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--primary) 45%, transparent);
+      outline-offset: 2px;
+    }
+
+    button:hover {
+      background: var(--control-hover);
+    }
+
+    button.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    button.danger {
+      border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
+      color: var(--danger);
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: var(--control);
+      color: var(--text);
+    }
+
+    input[type="number"] {
+      max-width: 110px;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .menu-toggle {
+      display: none;
+    }
+
+    main {
+      width: min(1360px, calc(100vw - 32px));
+      margin: 18px auto 28px;
+    }
+
+    .view[hidden] {
+      display: none;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .setup-grid {
+      grid-template-columns: minmax(430px, 1fr) minmax(390px, 1.1fr) minmax(300px, 0.85fr);
+      align-items: start;
+    }
+
+    .match-grid {
+      grid-template-columns: minmax(560px, 1fr) 340px;
+      align-items: start;
+    }
+
+    .home-grid {
+      grid-template-columns: minmax(360px, 1fr) minmax(320px, 0.75fr);
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .points-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .duration-field {
+      grid-column: 1 / -1;
+    }
+
+    .duration-field .points-row {
+      grid-template-columns: repeat(3, minmax(72px, 110px));
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 16px 0;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .team-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: var(--control);
+      display: grid;
+      gap: 8px;
+    }
+
+    .team-card-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .team-card h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .team-card-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .player-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .player-field {
+      display: grid;
+      grid-template-columns: 78px minmax(90px, 1fr) minmax(82px, 96px) minmax(108px, 118px);
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .player-field input,
+    .player-field select {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: var(--soft);
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .match-title {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .match-title h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .stats-table th,
+    .stats-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .stats-table th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stats-table input {
+      width: 74px;
+      padding: 7px;
+    }
+
+    .team-section-row td {
+      background: var(--section);
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .side-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .side-table th,
+    .side-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 6px;
+      text-align: left;
+    }
+
+    .side-table th:not(:first-child),
+    .side-table td:not(:first-child) {
+      text-align: center;
+    }
+
+    .notice {
+      border: 1px solid var(--notice-border);
+      border-radius: var(--radius);
+      background: var(--notice-bg);
+      padding: 12px;
+      color: var(--notice-text);
+      margin-bottom: 12px;
+    }
+
+    .timer-panel,
+    .score-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--section);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .timer-display {
+      font-variant-numeric: tabular-nums;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+
+    .timer-actions {
+      margin-top: 10px;
+    }
+
+    .bracket-round {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: var(--control);
+    }
+
+    .bracket-round h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .bracket-match {
+      border-top: 1px solid var(--line);
+      padding: 8px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bracket-match:first-of-type {
+      border-top: 0;
+    }
+
+    .results-box {
+      white-space: pre-wrap;
+      line-height: 1.55;
+      background: var(--control);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .format-help {
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .randomizer-panel[hidden] {
+      display: none;
+    }
+
+    .random-player-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) 98px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .random-player-row .random-player-position {
+      grid-column: 1;
+    }
+
+    .random-player-row .random-remove-player {
+      grid-column: 2;
+      width: 100%;
+    }
+
+    .random-role-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: var(--control);
+    }
+
+    .random-role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .feature-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .player-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      background: var(--control);
+      margin: 2px 4px 2px 0;
+    }
+
+    .tier-glow {
+      border-color: var(--tier-color);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 72%, transparent),
+                  0 0 12px color-mix(in srgb, var(--tier-color) 40%, transparent);
+    }
+
+    .tier-chip {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 1px 7px;
+      background: linear-gradient(135deg, #ffffff 0%, var(--tier-color) 72%);
+      color: #111827;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tooltip {
+      position: relative;
+      cursor: help;
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
+    }
+
+    .tooltip:hover::after,
+    .tooltip:focus-visible::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      min-width: 220px;
+      max-width: 280px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #111827;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      z-index: 30;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      background: #111827;
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 20;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    @media (max-width: 900px) {
+      .setup-grid,
+      .match-grid,
+      .home-grid,
+      .form-row,
+      .points-row,
+      .player-field,
+      .random-player-row,
+      .random-role-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .team-card-header,
+      .match-title {
+        flex-direction: column;
+      }
+    }
+
+    @media (min-width: 901px) and (max-width: 1180px) {
+      .player-field {
+        grid-template-columns: 78px minmax(120px, 1fr) minmax(90px, 110px);
+      }
+
+      .player-position-select {
+        grid-column: 2 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        font-size: 16px;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+      }
+
+      .brand h1 {
+        font-size: 20px;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .top-actions {
+        grid-column: 1 / -1;
+        display: none;
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .top-actions.open {
+        display: grid;
+      }
+
+      .top-actions button {
+        width: 100%;
+      }
+
+      main {
+        width: min(100vw - 20px, 640px);
+        margin: 10px auto 24px;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .grid {
+        gap: 12px;
+      }
+
+      .inline-actions {
+        align-items: stretch;
+      }
+
+      .inline-actions button {
+        flex: 1 1 150px;
+      }
+
+      .duration-field .points-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .timer-display {
+        font-size: 30px;
+      }
+
+      .results-box {
+        font-size: 14px;
+      }
+
+      .side-table {
+        font-size: 14px;
+      }
+
+      .side-table th,
+      .side-table td {
+        padding: 7px 4px;
+      }
+
+      .team-card-actions {
+        justify-content: flex-start;
+      }
+
+      .team-card-actions button {
+        flex: 1 1 120px;
+      }
+
+      .stats-table,
+      .stats-table thead,
+      .stats-table tbody,
+      .stats-table tr,
+      .stats-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .stats-table thead {
+        display: none;
+      }
+
+      .stats-table tr {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--control);
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+
+      .stats-table td {
+        border-bottom: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+      }
+
+      .stats-table td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .stats-table td:first-child {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-table td:first-child::before {
+        display: none;
+      }
+
+      .stats-table input {
+        width: 100%;
+      }
+
+      .team-section-row {
+        border: 0;
+        margin: 14px 0 6px;
+      }
+
+      .team-section-row td {
+        display: block;
+        border: 0;
+        border-radius: var(--radius);
+      }
+
+      .team-section-row td::before {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Football Tournament Manager</h1>
+    </div>
+    <button id="mobileMenuBtn" class="menu-toggle" aria-expanded="false" aria-controls="topActions">Menu</button>
+    <div id="topActions" class="top-actions">
+      <button id="homeBtn">Home</button>
+      <button id="themeToggleBtn" aria-pressed="false">Dark Mode</button>
+      <button id="newTournamentBtn">New Tournament</button>
+      <button id="exportBtn">Export Data</button>
+      <button id="importBtn">Import Data</button>
+      <input id="importFile" type="file" accept="application/json" hidden>
+    </div>
+  </header>
+
+  <main>
+    <section id="homeView" class="view">
+      <div class="grid home-grid">
+        <section class="panel">
+          <h2>Welcome</h2>
+          <p class="format-help">
+            Football Tournament Manager helps you create and run a complete football tournament from team setup to final awards.
+          </p>
+          <p class="format-help">
+            You can add teams manually, build randomized teams from a player list, track match results and player statistics, use timers and tie-breaks, and finish with a full champion and awards summary.
+          </p>
+          <div class="inline-actions" style="margin-top: 16px;">
+            <button id="homeStartBtn" class="primary">Open Tournament Setup</button>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <h2>Features</h2>
+          <ul class="feature-list">
+            <li>Round Robin, Double Round Robin, Knockout, Two-Legged Knockout, and Double Elimination.</li>
+            <li>Players, captains, goalkeepers, optional tiers, and optional positions.</li>
+            <li>Randomize and Level Randomize team builders.</li>
+            <li>Match timer, tie-breaks, brackets, standings, and final awards.</li>
+            <li>Top scorer, top assister, best keeper, best defender, and POTM.</li>
+            <li>Light mode, dark mode, export, and import.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="setupView" class="view">
+      <div class="grid setup-grid">
+        <section class="panel">
+          <h2>Tournament Setup</h2>
+          <div class="form-row">
+            <div>
+              <label for="tournamentName">Tournament name</label>
+              <input id="tournamentName" type="text" placeholder="Tournament name">
+            </div>
+            <div>
+              <label for="format">Format</label>
+              <select id="format">
+                <option value="round_robin">Round Robin</option>
+                <option value="knockout">Knockout</option>
+                <option value="double_round_robin">Double Round Robin</option>
+                <option value="double_elimination">Double Elimination</option>
+                <option value="two_legged_knockout">Two-Legged Knockout</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label for="teamCount">Number of teams</label>
+              <input id="teamCount" type="number" min="2" value="2">
+            </div>
+            <div id="pointsPanel">
+              <label>Point values</label>
+              <div class="points-row">
+                <input id="winPoints" type="number" value="3" title="Win points">
+                <input id="drawPoints" type="number" value="1" title="Draw points">
+                <input id="lossPoints" type="number" value="0" title="Loss points">
+              </div>
+              <p class="muted">Win, draw, and loss points. Negative values are allowed.</p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="duration-field">
+              <label>Default match duration</label>
+              <div class="points-row">
+                <input id="durationHours" type="number" min="0" value="0" title="Hours">
+                <input id="durationMinutes" type="number" min="0" max="59" value="45" title="Minutes">
+                <input id="durationSeconds" type="number" min="0" max="59" value="0" title="Seconds">
+              </div>
+              <p class="muted">Hours, minutes, seconds.</p>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <h2 id="teamFormTitle">Add Team</h2>
+          <div class="form-row">
+            <div>
+              <label for="teamName">Team name</label>
+              <input id="teamName" type="text">
+            </div>
+            <div>
+              <label for="playerCount">Number of players</label>
+              <input id="playerCount" type="number" min="1" value="1">
+            </div>
+          </div>
+
+          <div id="playerFields" class="stack"></div>
+          <p class="muted">
+            <span class="tooltip" tabindex="0" data-tooltip="Allows you to assign a football position such as ST, CM, FW, or CB to each player.">Player Position</span>
+            is optional. Goalkeepers cannot also have an outfield position.
+          </p>
+
+          <div class="form-row">
+            <div>
+              <label for="captainSelect">Captain</label>
+              <select id="captainSelect"></select>
+            </div>
+            <div>
+              <label for="goalkeeperSelect">Goalkeeper</label>
+              <select id="goalkeeperSelect"></select>
+            </div>
+          </div>
+
+          <div class="inline-actions">
+            <button id="saveTeamBtn" class="primary">Save Team</button>
+            <button id="cancelEditBtn">Cancel Edit</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="team-card-header">
+            <div>
+              <h2>Teams</h2>
+              <p id="teamSummary" class="muted"></p>
+            </div>
+            <button id="startTournamentBtn" class="primary">Start Tournament</button>
+          </div>
+          <div class="divider"></div>
+          <div id="teamsList" class="stack"></div>
+        </section>
+
+        <aside class="panel">
+          <h2>Format Guide</h2>
+          <p id="formatExplanation" class="format-help"></p>
+
+          <div class="divider"></div>
+
+          <h2>Random Team Builder</h2>
+          <p class="muted">Enter all players here, name the teams, then create randomized teams.</p>
+
+          <div id="randomTeamNames" class="stack"></div>
+
+          <div class="divider"></div>
+
+          <div id="randomPlayerRows" class="stack"></div>
+          <div class="inline-actions" style="margin-top: 10px;">
+            <button id="addRandomPlayerBtn">Add Player</button>
+            <button id="clearRandomPlayersBtn">Clear</button>
+          </div>
+
+          <div class="inline-actions" style="margin-top: 14px;">
+            <button id="randomizeBtn" class="primary tooltip" data-tooltip="Randomly divides all entered players into teams.">Randomize</button>
+            <button id="levelRandomizeBtn" class="tooltip" data-tooltip="Creates balanced teams by spreading higher-tier players as fairly as possible.">Level Randomize</button>
+          </div>
+
+          <div id="randomAssignments" class="stack" style="margin-top: 14px;"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="matchView" class="view" hidden>
+      <div class="grid match-grid">
+        <section class="panel">
+          <div class="match-title">
+            <div>
+              <h2 id="matchTitle"></h2>
+              <p id="matchProgress" class="muted"></p>
+            </div>
+            <span id="formatBadge" class="status-pill"></span>
+          </div>
+
+          <div>
+            <p id="cupTitle" class="muted">Tournament Cup</p>
+            <div class="divider"></div>
+
+            <section class="timer-panel">
+              <div class="timer-display" id="timerDisplay">00:45:00</div>
+              <div class="points-row">
+                <input id="matchHours" type="number" min="0" value="0" title="Hours">
+                <input id="matchMinutes" type="number" min="0" max="59" value="45" title="Minutes">
+                <input id="matchSeconds" type="number" min="0" max="59" value="0" title="Seconds">
+              </div>
+              <div class="inline-actions timer-actions">
+                <button id="timerStartBtn">Start</button>
+                <button id="timerPauseBtn">Pause</button>
+                <button id="timerResumeBtn">Resume</button>
+                <button id="timerResetBtn">Reset</button>
+              </div>
+            </section>
+
+            <div id="scorePanel" class="score-panel" hidden>
+              <div class="form-row">
+                <div>
+                  <label id="scoreALabel" for="scoreA">Team A score</label>
+                  <input id="scoreA" type="number" min="0" value="0">
+                </div>
+                <div>
+                  <label id="scoreBLabel" for="scoreB">Team B score</label>
+                  <input id="scoreB" type="number" min="0" value="0">
+                </div>
+              </div>
+              <p id="aggregateText" class="muted"></p>
+            </div>
+
+            <label for="matchResult">Result</label>
+            <select id="matchResult"></select>
+          </div>
+
+          <div id="tieBreakPanel" class="notice" hidden>
+            <div class="form-row">
+              <div>
+                <label for="tieBreakMethod">Tie break method</label>
+                <select id="tieBreakMethod">
+                  <option value="">Choose method</option>
+                  <option value="Penalties">Penalties</option>
+                  <option value="Extra Time">Extra Time</option>
+                  <option value="Golden Goal">Golden Goal</option>
+                </select>
+              </div>
+              <div>
+                <label for="tieBreakWinner">Tie break winner</label>
+                <select id="tieBreakWinner"></select>
+              </div>
+            </div>
+            <div id="extraTimePanel" class="form-row" hidden>
+              <div>
+                <label>Extra time duration</label>
+                <div class="points-row">
+                  <input id="extraHours" type="number" min="0" value="0" title="Hours">
+                  <input id="extraMinutes" type="number" min="0" max="59" value="30" title="Minutes">
+                  <input id="extraSeconds" type="number" min="0" max="59" value="0" title="Seconds">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="roundNotice" class="notice" hidden></div>
+          <div id="statsTableWrap"></div>
+
+          <div class="inline-actions" style="justify-content: flex-end; margin-top: 16px;">
+            <button id="submitMatchBtn" class="primary">Submit Match</button>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <h2 id="sideTitle">Standings</h2>
+          <div id="sideContent"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="resultsView" class="view" hidden>
+      <section class="panel">
+        <div class="team-card-header">
+          <div>
+            <h2>Final Tournament Results</h2>
+            <p id="resultsSubtitle" class="muted"></p>
+          </div>
+          <button id="exportResultsBtn" class="primary">Export Data</button>
+        </div>
+        <div class="divider"></div>
+        <div id="tieBreakBox" class="notice" hidden></div>
+        <div id="resultsText" class="results-box"></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const state = {
+      view: "home",
+      theme: "light",
+      tournamentName: "",
+      format: "round_robin",
+      teamCount: 2,
+      points: { win: 3, draw: 1, loss: 0 },
+      defaultDuration: { hours: 0, minutes: 45, seconds: 0 },
+      teams: [],
+      matches: [],
+      currentMatchIndex: 0,
+      currentRoundMatches: [],
+      currentRoundWinners: [],
+      currentRoundNumber: 1,
+      activeDoubleElimTeams: [],
+      grandFinalResetPending: false,
+      roundNotice: "",
+      championId: null,
+      pendingTieTeamIds: [],
+      lastTeamsRandomized: false
+    };
+
+    let editingTeamId = null;
+    let idCounter = 1;
+    let timerIntervalId = null;
+    let timerRemainingSeconds = 45 * 60;
+    let timerInitialSeconds = 45 * 60;
+    let timerRunning = false;
+
+    const $ = (id) => document.getElementById(id);
+    const TIERS = ["", "E", "D", "C", "B", "A", "S", "S+"];
+    const TIER_ORDER = ["E", "D", "C", "B", "A", "S", "S+"];
+    const TIER_COLORS = {
+      E: "#a855f7",
+      D: "#6366f1",
+      C: "#3b82f6",
+      B: "#22c55e",
+      A: "#facc15",
+      S: "#f97316",
+      "S+": "#ef4444"
+    };
+    const POSITIONS = ["", "D", "LB", "RB", "CB", "CM", "CDM", "CAM", "RCM", "LCM", "RW", "LW", "ST", "FW"];
+    const FORMAT_EXPLANATIONS = {
+      round_robin: "Round Robin: Every team plays every other team once. The team with the most points wins.",
+      double_round_robin: "Double Round Robin: Every team plays every other team twice. The highest points total wins.",
+      knockout: "Knockout: Teams play elimination matches. Winners advance until the final champion is decided.",
+      two_legged_knockout: "Two-Legged Knockout: Each matchup has two matches. The team with the better aggregate score advances.",
+      double_elimination: "Double Elimination: A team is eliminated only after losing twice. The Grand Final can reset if needed."
+    };
+
+    function newId(prefix) {
+      return `${prefix}-${Date.now()}-${idCounter++}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function toInt(value, fallback = 0) {
+      const number = Number.parseInt(value, 10);
+      return Number.isFinite(number) ? number : fallback;
+    }
+
+    function normalize(value) {
+      return value.trim().toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let index = copy.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+      }
+      return copy;
+    }
+
+    function randomIndex(length) {
+      return Math.floor(Math.random() * length);
+    }
+
+    function isWholeNumber(value) {
+      return /^-?\d+$/.test(String(value).trim());
+    }
+
+    function isNonNegativeWholeNumber(value) {
+      return /^\d+$/.test(String(value).trim());
+    }
+
+    function formatDuration(seconds) {
+      const safeSeconds = Math.max(0, seconds);
+      const hours = Math.floor(safeSeconds / 3600);
+      const minutes = Math.floor((safeSeconds % 3600) / 60);
+      const remainingSeconds = safeSeconds % 60;
+      return [hours, minutes, remainingSeconds]
+        .map((part) => String(part).padStart(2, "0"))
+        .join(":");
+    }
+
+    function durationToSeconds(hours, minutes, seconds) {
+      return (hours * 3600) + (minutes * 60) + seconds;
+    }
+
+    function readDuration(prefix, label) {
+      const hoursValue = $(`${prefix}Hours`).value;
+      const minutesValue = $(`${prefix}Minutes`).value;
+      const secondsValue = $(`${prefix}Seconds`).value;
+
+      if (![hoursValue, minutesValue, secondsValue].every(isNonNegativeWholeNumber)) {
+        alert(`${label} must use whole numbers greater than or equal to zero.`);
+        return null;
+      }
+
+      const hours = toInt(hoursValue, 0);
+      const minutes = toInt(minutesValue, 0);
+      const seconds = toInt(secondsValue, 0);
+
+      if (minutes > 59 || seconds > 59) {
+        alert(`${label} minutes and seconds must be between 0 and 59.`);
+        return null;
+      }
+
+      const totalSeconds = durationToSeconds(hours, minutes, seconds);
+      if (totalSeconds <= 0) {
+        alert(`${label} must be longer than 00:00:00.`);
+        return null;
+      }
+
+      return { hours, minutes, seconds, totalSeconds };
+    }
+
+    function setDurationInputs(prefix, duration) {
+      $(`${prefix}Hours`).value = String(duration.hours);
+      $(`${prefix}Minutes`).value = String(duration.minutes);
+      $(`${prefix}Seconds`).value = String(duration.seconds);
+    }
+
+    function formatName() {
+      const names = {
+        round_robin: "Round Robin",
+        knockout: "Knockout",
+        double_round_robin: "Double Round Robin",
+        double_elimination: "Double Elimination",
+        two_legged_knockout: "Two-Legged Knockout"
+      };
+      return names[state.format] || "Unknown";
+    }
+
+    function usesPointSystem() {
+      return state.format === "round_robin" || state.format === "double_round_robin";
+    }
+
+    function requiresEvenTeams() {
+      return ["knockout", "double_elimination", "two_legged_knockout"].includes(state.format);
+    }
+
+    function isEliminationFormat() {
+      return ["knockout", "double_elimination", "two_legged_knockout"].includes(state.format);
+    }
+
+    function winnerRequiredForCurrentMatch() {
+      return state.format === "knockout" || state.format === "double_elimination";
+    }
+
+    function isTwoLeggedFormat() {
+      return state.format === "two_legged_knockout";
+    }
+
+    function shouldDisplayBracket() {
+      return isEliminationFormat() && state.teamCount >= 4;
+    }
+
+    function roundNameForTeamCount(teamCount, fallbackRoundNumber = 1) {
+      if (teamCount === 32) return "Round of 32";
+      if (teamCount === 16) return "Round of 16";
+      if (teamCount === 8) return "Quarter Finals";
+      if (teamCount === 4) return "Semi Finals";
+      if (teamCount === 2) return "Final";
+      return `Round ${fallbackRoundNumber}`;
+    }
+
+    function showToast(message) {
+      const toast = $("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timeoutId);
+      showToast.timeoutId = window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function applyTheme() {
+      document.body.dataset.theme = state.theme === "dark" ? "dark" : "light";
+      $("themeToggleBtn").textContent = state.theme === "dark" ? "Light Mode" : "Dark Mode";
+      $("themeToggleBtn").setAttribute("aria-pressed", state.theme === "dark" ? "true" : "false");
+    }
+
+    function toggleTheme() {
+      state.theme = state.theme === "dark" ? "light" : "dark";
+      applyTheme();
+    }
+
+    function showView(viewName) {
+      state.view = viewName;
+      $("homeView").hidden = viewName !== "home";
+      $("setupView").hidden = viewName !== "setup";
+      $("matchView").hidden = viewName !== "match";
+      $("resultsView").hidden = viewName !== "results";
+    }
+
+    function setMobileMenu(open) {
+      $("topActions").classList.toggle("open", open);
+      $("mobileMenuBtn").setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    function navigateTo(viewName) {
+      showView(viewName);
+      setMobileMenu(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function getTeam(teamId) {
+      return state.teams.find((team) => team.id === teamId);
+    }
+
+    function getPlayer(team, playerId) {
+      return team.players.find((player) => player.id === playerId);
+    }
+
+    function teamCaptain(team) {
+      return team.players.find((player) => player.id === team.captainId);
+    }
+
+    function teamGoalkeeper(team) {
+      return team.players.find((player) => player.id === team.goalkeeperId);
+    }
+
+    function teamTotalGoals(team) {
+      return team.players.reduce((total, player) => total + player.stats.goals, 0);
+    }
+
+    function tierOptions(selectedTier = "") {
+      return TIERS.map((tier) => {
+        const label = tier || "Tier";
+        return `<option value="${tier}" ${tier === selectedTier ? "selected" : ""}>${label}</option>`;
+      }).join("");
+    }
+
+    function positionOptions(selectedPosition = "") {
+      return POSITIONS.map((position) => {
+        const label = position || "Position";
+        return `<option value="${position}" ${position === selectedPosition ? "selected" : ""}>${label}</option>`;
+      }).join("");
+    }
+
+    function tierColor(tier) {
+      return TIER_COLORS[tier] || "";
+    }
+
+    function playerLabel(team, player) {
+      let label = player.name;
+      if (player.id === team.captainId) label += " (C)";
+      if (player.id === team.goalkeeperId) label += " [GK]";
+      else if (player.position) label += ` - ${player.position}`;
+      if (player.tier) label += ` [${player.tier}]`;
+      return label;
+    }
+
+    function playerDisplayHtml(team, player, includeTierGlow = true) {
+      const color = tierColor(player.tier);
+      const glowClass = includeTierGlow && color ? " tier-glow" : "";
+      const style = color ? ` style="--tier-color: ${color}"` : "";
+      const tierChip = player.tier ? ` <span class="tier-chip"${style}>${escapeHtml(player.tier)}</span>` : "";
+      return `<span class="player-pill${glowClass}"${style}>${escapeHtml(playerLabel(team, player))}${tierChip}</span>`;
+    }
+
+    function safePlayerLabel(team, player) {
+      return player ? playerLabel(team, player) : "Not selected";
+    }
+
+    function resetTeamForm() {
+      editingTeamId = null;
+      $("teamFormTitle").textContent = "Add Team";
+      $("teamName").value = "";
+      $("playerCount").value = "1";
+      buildPlayerFields([""]);
+      $("saveTeamBtn").textContent = "Save Team";
+    }
+
+    function readCurrentPlayerFieldData() {
+      return Array.from(document.querySelectorAll(".player-name-input")).map((input, index) => ({
+        name: input.value,
+        tier: document.querySelectorAll(".player-tier-select")[index]?.value || "",
+        position: document.querySelectorAll(".player-position-select")[index]?.value || ""
+      }));
+    }
+
+    function normalizePlayerFieldData(values) {
+      if (!values) return readCurrentPlayerFieldData();
+      return values.map((value) => {
+        if (typeof value === "string") return { name: value, tier: "", position: "" };
+        return {
+          name: value.name || "",
+          tier: value.tier || "",
+          position: value.position || ""
+        };
+      });
+    }
+
+    function buildPlayerFields(values = null) {
+      const count = Math.max(1, toInt($("playerCount").value, 1));
+      const currentPlayers = normalizePlayerFieldData(values);
+      const fields = $("playerFields");
+      fields.innerHTML = "";
+
+      for (let index = 0; index < count; index += 1) {
+        const currentPlayer = currentPlayers[index] || { name: "", tier: "", position: "" };
+        const row = document.createElement("div");
+        row.className = "player-field";
+        row.innerHTML = `
+          <label for="player-${index}">Player ${index + 1}</label>
+          <input id="player-${index}" class="player-name-input" type="text" value="${escapeHtml(currentPlayer.name || "")}">
+          <select class="player-tier-select" aria-label="Player ${index + 1} mastery tier" title="Optional: choose this player's mastery tier.">${tierOptions(currentPlayer.tier)}</select>
+          <select class="player-position-select" aria-label="Player ${index + 1} position" title="Optional: choose this player's football position. Goalkeepers cannot also use an outfield position.">${positionOptions(currentPlayer.position)}</select>
+        `;
+        fields.appendChild(row);
+      }
+
+      document.querySelectorAll(".player-name-input").forEach((input) => {
+        input.addEventListener("input", refreshPlayerSelects);
+      });
+      refreshPlayerSelects();
+    }
+
+    function refreshPlayerSelects() {
+      const names = Array.from(document.querySelectorAll(".player-name-input")).map((input, index) => {
+        return input.value.trim() || `Player ${index + 1}`;
+      });
+      const captainValue = $("captainSelect").value;
+      const goalkeeperValue = $("goalkeeperSelect").value;
+
+      $("captainSelect").innerHTML = names.map((name, index) => `<option value="${index}">${escapeHtml(name)}</option>`).join("");
+      $("goalkeeperSelect").innerHTML = names.map((name, index) => `<option value="${index}">${escapeHtml(name)}</option>`).join("");
+
+      $("captainSelect").value = names[captainValue] ? captainValue : "0";
+      $("goalkeeperSelect").value = names[goalkeeperValue] ? goalkeeperValue : "0";
+    }
+
+    function syncSetupFromInputs() {
+      state.tournamentName = $("tournamentName").value.trim();
+      state.format = $("format").value;
+      if (!isNonNegativeWholeNumber($("teamCount").value) || toInt($("teamCount").value, 0) < 2) {
+        alert("Team count must be a whole number of at least 2.");
+        return false;
+      }
+      state.teamCount = toInt($("teamCount").value, 2);
+
+      const pointValues = [$("winPoints").value, $("drawPoints").value, $("lossPoints").value];
+      if (!pointValues.every(isWholeNumber)) {
+        alert("Win, draw, and loss points must be valid integers. Negative values are allowed.");
+        return false;
+      }
+
+      state.points = {
+        win: toInt($("winPoints").value, 3),
+        draw: toInt($("drawPoints").value, 1),
+        loss: toInt($("lossPoints").value, 0)
+      };
+
+      const duration = readDuration("duration", "Default match duration");
+      if (!duration) return false;
+      if (duration) {
+        state.defaultDuration = {
+          hours: duration.hours,
+          minutes: duration.minutes,
+          seconds: duration.seconds
+        };
+      }
+      return true;
+    }
+
+    function refreshSetup() {
+      $("pointsPanel").style.display = ["round_robin", "double_round_robin"].includes($("format").value) ? "block" : "none";
+      const expected = Math.max(2, toInt($("teamCount").value, 2));
+      $("teamSummary").textContent = `${state.teams.length} of ${expected} teams entered`;
+      $("formatExplanation").textContent = FORMAT_EXPLANATIONS[$("format").value] || "Choose a tournament format to see how it works.";
+      renderRandomTeamNameInputs();
+      renderTeams();
+      renderRandomAssignments();
+    }
+
+    function validatePlayerMetadata(players, requireTier = false) {
+      for (const player of players) {
+        if (player.tier && !TIER_ORDER.includes(player.tier)) {
+          alert(`Invalid mastery tier for ${player.name || "a player"}. Choose E, D, C, B, A, S, or S+.`);
+          return false;
+        }
+        if (requireTier && !player.tier) {
+          alert("Level Randomize needs a mastery tier for every player.");
+          return false;
+        }
+        if (player.position && !POSITIONS.includes(player.position)) {
+          alert(`Invalid player position for ${player.name || "a player"}.`);
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function renderTeams() {
+      const teamsList = $("teamsList");
+      if (state.teams.length === 0) {
+        teamsList.innerHTML = `<p class="muted">No teams added yet.</p>`;
+        return;
+      }
+
+      teamsList.innerHTML = state.teams.map((team) => {
+        const players = team.players.map((player) => `<li>${playerDisplayHtml(team, player)}</li>`).join("");
+        return `
+          <article class="team-card">
+            <div class="team-card-header">
+              <div>
+                <h3>${escapeHtml(team.name)}</h3>
+                <p class="muted">${team.players.length} players | Captain: ${escapeHtml(safePlayerLabel(team, teamCaptain(team)))} | GK: ${escapeHtml(safePlayerLabel(team, teamGoalkeeper(team)))}</p>
+              </div>
+              <div class="team-card-actions">
+                <button data-edit-team="${team.id}">Edit</button>
+                <button class="danger" data-remove-team="${team.id}">Remove</button>
+              </div>
+            </div>
+            <ol class="player-list">${players}</ol>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-edit-team]").forEach((button) => {
+        button.addEventListener("click", () => editTeam(button.dataset.editTeam));
+      });
+      document.querySelectorAll("[data-remove-team]").forEach((button) => {
+        button.addEventListener("click", () => removeTeam(button.dataset.removeTeam));
+      });
+    }
+
+    function renderRandomTeamNameInputs() {
+      const count = Math.max(2, toInt($("teamCount").value, 2));
+      const existingValues = Array.from(document.querySelectorAll(".random-team-name-input")).map((input) => input.value);
+      $("randomTeamNames").innerHTML = Array.from({ length: count }, (_, index) => {
+        const value = existingValues[index] || state.teams[index]?.name || `Team ${index + 1}`;
+        return `
+          <div>
+            <label for="randomTeamName-${index}">Team ${index + 1} name</label>
+            <input id="randomTeamName-${index}" class="random-team-name-input" type="text" value="${escapeHtml(value)}">
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderRandomAssignments() {
+      if (!state.lastTeamsRandomized || state.teams.length === 0) {
+        $("randomAssignments").innerHTML = "";
+        return;
+      }
+
+      $("randomAssignments").innerHTML = `
+        <div class="divider"></div>
+        <h2>Randomized Roles</h2>
+        <p class="muted">Optional: choose captains and goalkeepers for randomized teams. If you leave them unchanged, defaults are already selected.</p>
+        ${state.teams.map((team) => {
+          const playerOptions = team.players.map((player) => `<option value="${player.id}">${escapeHtml(playerLabel(team, player))}</option>`).join("");
+          return `
+            <div class="random-role-card">
+              <h3>${escapeHtml(team.name)}</h3>
+              <div class="random-role-grid">
+                <div>
+                  <label for="randomCaptain-${team.id}">Captain</label>
+                  <select id="randomCaptain-${team.id}" class="random-role-select" data-team-id="${team.id}" data-role="captain">${playerOptions}</select>
+                </div>
+                <div>
+                  <label for="randomGoalkeeper-${team.id}">Goalkeeper</label>
+                  <select id="randomGoalkeeper-${team.id}" class="random-role-select" data-team-id="${team.id}" data-role="goalkeeper">${playerOptions}</select>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      `;
+
+      state.teams.forEach((team) => {
+        const captainSelect = document.getElementById(`randomCaptain-${team.id}`);
+        const goalkeeperSelect = document.getElementById(`randomGoalkeeper-${team.id}`);
+        if (captainSelect) captainSelect.value = team.captainId;
+        if (goalkeeperSelect) goalkeeperSelect.value = team.goalkeeperId;
+      });
+
+      document.querySelectorAll(".random-role-select").forEach((select) => {
+        select.addEventListener("change", updateRandomizedRole);
+      });
+    }
+
+    function updateRandomizedRole(event) {
+      const select = event.target;
+      const team = getTeam(select.dataset.teamId);
+      if (!team) return;
+
+      if (select.dataset.role === "captain") {
+        team.captainId = select.value;
+      } else {
+        const goalkeeper = getPlayer(team, select.value);
+        if (goalkeeper?.position) {
+          alert("A player cannot be both a goalkeeper and an outfield position player. The selected goalkeeper's outfield position will be removed.");
+          goalkeeper.position = "";
+        }
+        team.goalkeeperId = select.value;
+      }
+
+      renderTeams();
+      renderRandomAssignments();
+    }
+
+    function addRandomPlayerRow(player = {}) {
+      const row = document.createElement("div");
+      row.className = "random-player-row";
+      row.innerHTML = `
+        <input class="random-player-name" type="text" placeholder="Player name" value="${escapeHtml(player.name || "")}">
+        <select class="random-player-tier" aria-label="Random player tier" title="Optional: choose this player's mastery tier. Level Randomize uses this to balance teams.">${tierOptions(player.tier || "")}</select>
+        <select class="random-player-position" aria-label="Random player position" title="Optional: choose this player's football position. Goalkeepers cannot also use an outfield position.">${positionOptions(player.position || "")}</select>
+        <button type="button" class="danger random-remove-player">Remove</button>
+      `;
+      row.querySelector(".random-remove-player").addEventListener("click", () => {
+        row.remove();
+        if (document.querySelectorAll(".random-player-row").length === 0) addRandomPlayerRow();
+      });
+      $("randomPlayerRows").appendChild(row);
+    }
+
+    function clearRandomPlayers() {
+      $("randomPlayerRows").innerHTML = "";
+      addRandomPlayerRow();
+    }
+
+    function readRandomPlayers(requireTier) {
+      const players = Array.from(document.querySelectorAll(".random-player-row")).map((row) => ({
+        name: row.querySelector(".random-player-name").value.trim(),
+        tier: row.querySelector(".random-player-tier").value,
+        position: row.querySelector(".random-player-position").value
+      })).filter((player) => player.name || player.tier || player.position);
+
+      if (players.length === 0) {
+        alert("Enter at least one player before randomizing teams.");
+        return null;
+      }
+      if (players.some((player) => !player.name)) {
+        alert("Player names cannot be empty.");
+        return null;
+      }
+      const duplicatePlayer = players.some((player, index) => {
+        return players.findIndex((otherPlayer) => normalize(otherPlayer.name) === normalize(player.name)) !== index;
+      });
+      if (duplicatePlayer) {
+        alert("Randomizer player names must be unique.");
+        return null;
+      }
+      if (!validatePlayerMetadata(players, requireTier)) return null;
+      return players;
+    }
+
+    function readRandomTeamNames() {
+      const count = Math.max(2, toInt($("teamCount").value, 2));
+      const names = Array.from(document.querySelectorAll(".random-team-name-input")).slice(0, count).map((input) => input.value.trim());
+      if (names.length !== count || names.some((name) => !name)) {
+        alert("Team names cannot be empty.");
+        return null;
+      }
+      const duplicateTeam = names.some((name, index) => {
+        return names.findIndex((otherName) => normalize(otherName) === normalize(name)) !== index;
+      });
+      if (duplicateTeam) {
+        alert("Randomized team names must be unique.");
+        return null;
+      }
+      return names;
+    }
+
+    function randomizeTeams(useLevels) {
+      if (!syncSetupFromInputs()) return;
+      if (requiresEvenTeams() && state.teamCount % 2 !== 0) {
+        alert(`${formatName()} must start with an even number of teams.`);
+        return;
+      }
+
+      const teamNames = readRandomTeamNames();
+      if (!teamNames) return;
+
+      const randomPlayers = readRandomPlayers(useLevels);
+      if (!randomPlayers) return;
+      if (randomPlayers.length < state.teamCount) {
+        alert("Randomized teams cannot be created because there are fewer players than teams.");
+        return;
+      }
+      if (state.teams.length > 0 && !confirm("Replace the current teams with randomized teams?")) {
+        return;
+      }
+
+      const teamBuckets = useLevels
+        ? distributePlayersByTier(randomPlayers, state.teamCount)
+        : distributePlayersRandomly(randomPlayers, state.teamCount);
+
+      if (randomPlayers.length % state.teamCount !== 0) {
+        alert("Warning: The number of players cannot be divided equally. One team will have one missing player.");
+      }
+
+      state.teams = teamBuckets.map((bucket, teamIndex) => createTeamFromRandomBucket(teamNames[teamIndex], bucket, useLevels));
+      state.lastTeamsRandomized = true;
+      resetTeamForm();
+      refreshSetup();
+      showToast(useLevels ? "Level randomized teams created" : "Randomized teams created");
+    }
+
+    function distributePlayersRandomly(players, teamCount) {
+      const buckets = Array.from({ length: teamCount }, () => []);
+      shuffle(players).forEach((player, index) => {
+        buckets[index % teamCount].push(player);
+      });
+      return buckets;
+    }
+
+    function distributePlayersByTier(players, teamCount) {
+      const buckets = Array.from({ length: teamCount }, () => []);
+      const tierCounts = Array.from({ length: teamCount }, () => Object.fromEntries(TIER_ORDER.map((tier) => [tier, 0])));
+
+      [...TIER_ORDER].reverse().forEach((tier) => {
+        shuffle(players.filter((player) => player.tier === tier)).forEach((player) => {
+          let bestIndex = 0;
+          for (let index = 1; index < teamCount; index += 1) {
+            const currentBest = tierCounts[bestIndex][tier];
+            const candidateTierCount = tierCounts[index][tier];
+            const currentBestSize = buckets[bestIndex].length;
+            const candidateSize = buckets[index].length;
+            if (candidateTierCount < currentBest || (candidateTierCount === currentBest && candidateSize < currentBestSize)) {
+              bestIndex = index;
+            }
+          }
+          buckets[bestIndex].push(player);
+          tierCounts[bestIndex][tier] += 1;
+        });
+      });
+
+      return buckets;
+    }
+
+    function createTeamFromRandomBucket(teamName, bucket, keepTiers) {
+      const sPlusIndex = bucket.findIndex((player) => player.tier === "S+");
+      const captainIndex = sPlusIndex >= 0 ? sPlusIndex : randomIndex(bucket.length);
+
+      const goalkeeperCandidates = bucket
+        .map((player, index) => ({ player, index }))
+        .filter(({ player }) => !player.position);
+      const goalkeeperIndex = goalkeeperCandidates.length > 0
+        ? goalkeeperCandidates[randomIndex(goalkeeperCandidates.length)].index
+        : randomIndex(bucket.length);
+
+      const players = bucket.map((player, index) => ({
+        id: newId("player"),
+        name: player.name,
+        tier: keepTiers ? player.tier : "",
+        position: index === goalkeeperIndex ? "" : player.position,
+        stats: { goals: 0, assists: 0, interceptions: 0, saves: 0 }
+      }));
+
+      return {
+        id: newId("team"),
+        name: teamName,
+        players,
+        captainId: players[captainIndex].id,
+        goalkeeperId: players[goalkeeperIndex].id,
+        points: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0
+      };
+    }
+
+    function saveTeam() {
+      const teamName = $("teamName").value.trim();
+      const playerEntries = readCurrentPlayerFieldData().map((player) => ({
+        name: player.name.trim(),
+        tier: player.tier,
+        position: player.position
+      }));
+      const playerNames = playerEntries.map((player) => player.name);
+      const expectedPlayers = Math.max(1, toInt($("playerCount").value, 1));
+
+      if (!teamName) {
+        alert("Enter the team name.");
+        return;
+      }
+
+      if (playerNames.length !== expectedPlayers || playerNames.some((name) => !name)) {
+        alert("Enter every player name.");
+        return;
+      }
+
+      const duplicatePlayer = playerNames.some((name, index) => {
+        return playerNames.findIndex((otherName) => normalize(otherName) === normalize(name)) !== index;
+      });
+      if (duplicatePlayer) {
+        alert("Player names inside one team must be unique.");
+        return;
+      }
+
+      if (!validatePlayerMetadata(playerEntries)) return;
+
+      const captainIndex = toInt($("captainSelect").value, 0);
+      const goalkeeperIndex = toInt($("goalkeeperSelect").value, 0);
+      if (playerEntries[goalkeeperIndex]?.position) {
+        alert("A player cannot be both a goalkeeper and an outfield position player. Please choose either goalkeeper or another position.");
+        return;
+      }
+
+      const duplicateTeam = state.teams.some((team) => {
+        return team.id !== editingTeamId && normalize(team.name) === normalize(teamName);
+      });
+      if (duplicateTeam) {
+        alert("A team with this name already exists.");
+        return;
+      }
+
+      const players = playerEntries.map((entry) => ({
+        id: newId("player"),
+        name: entry.name,
+        tier: entry.tier,
+        position: entry.position,
+        stats: { goals: 0, assists: 0, interceptions: 0, saves: 0 }
+      }));
+
+      const team = {
+        id: editingTeamId || newId("team"),
+        name: teamName,
+        players,
+        captainId: players[captainIndex].id,
+        goalkeeperId: players[goalkeeperIndex].id,
+        points: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0
+      };
+
+      const existingIndex = state.teams.findIndex((existingTeam) => existingTeam.id === editingTeamId);
+      if (existingIndex >= 0) {
+        state.teams[existingIndex] = team;
+        showToast("Team updated");
+      } else {
+        state.teams.push(team);
+        showToast("Team added");
+      }
+
+      state.lastTeamsRandomized = false;
+      resetTeamForm();
+      refreshSetup();
+    }
+
+    function editTeam(teamId) {
+      const team = getTeam(teamId);
+      if (!team) return;
+
+      editingTeamId = team.id;
+      $("teamFormTitle").textContent = "Edit Team";
+      $("teamName").value = team.name;
+      $("playerCount").value = String(team.players.length);
+      buildPlayerFields(team.players.map((player) => ({
+        name: player.name,
+        tier: player.tier || "",
+        position: player.position || ""
+      })));
+      $("captainSelect").value = String(team.players.findIndex((player) => player.id === team.captainId));
+      $("goalkeeperSelect").value = String(team.players.findIndex((player) => player.id === team.goalkeeperId));
+      $("saveTeamBtn").textContent = "Update Team";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function removeTeam(teamId) {
+      const team = getTeam(teamId);
+      if (!team || !confirm(`Remove ${team.name}?`)) return;
+      state.teams = state.teams.filter((existingTeam) => existingTeam.id !== teamId);
+      state.lastTeamsRandomized = false;
+      if (editingTeamId === teamId) resetTeamForm();
+      refreshSetup();
+    }
+
+    function validateTeamsBeforeStart() {
+      for (const team of state.teams) {
+        if (!team.name || !team.name.trim()) {
+          alert("Team names cannot be empty.");
+          return false;
+        }
+        if (!team.players || team.players.length === 0) {
+          alert(`${team.name} must have at least one player.`);
+          return false;
+        }
+        const goalkeeper = teamGoalkeeper(team);
+        const captain = teamCaptain(team);
+        if (!goalkeeper || !captain) {
+          alert(`${team.name} must have a captain and goalkeeper.`);
+          return false;
+        }
+        const players = team.players.map((player) => ({
+          name: player.name || "",
+          tier: player.tier || "",
+          position: player.position || ""
+        }));
+        if (players.some((player) => !player.name.trim())) {
+          alert(`${team.name} has a player with an empty name.`);
+          return false;
+        }
+        if (!validatePlayerMetadata(players)) return false;
+        if (goalkeeper.position) {
+          alert("A player cannot be both a goalkeeper and an outfield position player. Please choose either goalkeeper or another position.");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function resetTournamentStats() {
+      state.matches = [];
+      state.currentMatchIndex = 0;
+      state.currentRoundMatches = [];
+      state.currentRoundWinners = [];
+      state.currentRoundNumber = 1;
+      state.activeDoubleElimTeams = [];
+      state.grandFinalResetPending = false;
+      state.roundNotice = "";
+      state.championId = null;
+      state.pendingTieTeamIds = [];
+
+      state.teams.forEach((team) => {
+        team.points = 0;
+        team.wins = 0;
+        team.draws = 0;
+        team.losses = 0;
+        team.bracketLosses = 0;
+        team.players.forEach((player) => {
+          player.stats = { goals: 0, assists: 0, interceptions: 0, saves: 0 };
+        });
+      });
+    }
+
+    function startTournament() {
+      if (!syncSetupFromInputs()) return;
+
+      if (!state.tournamentName) {
+        alert("Enter the tournament name.");
+        return;
+      }
+
+      if (!["round_robin", "knockout", "double_round_robin", "double_elimination", "two_legged_knockout"].includes(state.format)) {
+        alert("Choose a valid tournament format.");
+        return;
+      }
+
+      if (state.teams.length !== state.teamCount) {
+        alert(`You entered ${state.teams.length} teams, but the tournament expects ${state.teamCount}.`);
+        return;
+      }
+
+      if (!validateTeamsBeforeStart()) return;
+
+      if (requiresEvenTeams() && state.teamCount % 2 !== 0) {
+        alert(`${formatName()} must start with an even number of teams.`);
+        return;
+      }
+
+      resetTournamentStats();
+
+      if (state.format === "round_robin") {
+        state.matches = generateRoundRobinMatches(false);
+      } else if (state.format === "double_round_robin") {
+        state.matches = generateRoundRobinMatches(true);
+      } else if (state.format === "knockout") {
+        startKnockoutRound(state.teams);
+      } else if (state.format === "two_legged_knockout") {
+        startTwoLeggedRound(state.teams);
+      } else if (state.format === "double_elimination") {
+        state.activeDoubleElimTeams = state.teams.map((team) => team.id);
+        startDoubleEliminationRound();
+      } else {
+        alert("Choose a valid tournament format.");
+        return;
+      }
+
+      renderMatch();
+    }
+
+    function generateRoundRobinMatches(doubleRound) {
+      const matches = [];
+      const teams = shuffle(state.teams);
+      for (let first = 0; first < teams.length; first += 1) {
+        for (let second = first + 1; second < teams.length; second += 1) {
+          matches.push(createMatch("Round Robin", teams[first], teams[second]));
+          if (doubleRound) {
+            matches.push(createMatch("Reverse Fixture", teams[second], teams[first]));
+          }
+        }
+      }
+      return shuffle(matches);
+    }
+
+    function createMatch(roundName, teamA, teamB, options = {}) {
+      return {
+        id: newId("match"),
+        roundName,
+        teamAId: teamA.id,
+        teamBId: teamB.id,
+        legGroupId: options.legGroupId || null,
+        legNumber: options.legNumber || 1,
+        bracket: options.bracket || "",
+        scoreA: null,
+        scoreB: null,
+        aggregateA: null,
+        aggregateB: null,
+        tieBreakMethod: "",
+        tieBreakWinnerId: null,
+        resultText: "",
+        winnerId: null,
+        stats: []
+      };
+    }
+
+    function startKnockoutRound(activeTeams) {
+      const teams = shuffle(activeTeams);
+      const roundName = roundNameForTeamCount(teams.length, state.currentRoundNumber);
+      state.currentRoundWinners = [];
+      state.roundNotice = "";
+
+      if (teams.length % 2 !== 0) {
+        const byeIndex = Math.floor(Math.random() * teams.length);
+        const [byeTeam] = teams.splice(byeIndex, 1);
+        state.currentRoundWinners.push(byeTeam);
+        state.roundNotice = `${byeTeam.name} receives a bye and moves to the next round.`;
+      }
+
+      state.currentRoundMatches = [];
+      for (let index = 0; index < teams.length; index += 2) {
+        state.currentRoundMatches.push(createMatch(roundName, teams[index], teams[index + 1]));
+      }
+      state.matches.push(...state.currentRoundMatches);
+      state.currentMatchIndex = 0;
+    }
+
+    function startTwoLeggedRound(activeTeams) {
+      const teams = shuffle(activeTeams);
+      const roundName = roundNameForTeamCount(teams.length, state.currentRoundNumber);
+      state.currentRoundWinners = [];
+      state.currentRoundMatches = [];
+      state.roundNotice = "";
+
+      if (teams.length % 2 !== 0) {
+        const byeIndex = Math.floor(Math.random() * teams.length);
+        const [byeTeam] = teams.splice(byeIndex, 1);
+        state.currentRoundWinners.push(byeTeam);
+        state.roundNotice = `${byeTeam.name} receives a bye and moves to the next round.`;
+      }
+
+      for (let index = 0; index < teams.length; index += 2) {
+        const groupId = newId("leg");
+        state.currentRoundMatches.push(createMatch(`${roundName} - First Leg`, teams[index], teams[index + 1], {
+          legGroupId: groupId,
+          legNumber: 1
+        }));
+        state.currentRoundMatches.push(createMatch(`${roundName} - Second Leg`, teams[index + 1], teams[index], {
+          legGroupId: groupId,
+          legNumber: 2
+        }));
+      }
+
+      state.matches.push(...state.currentRoundMatches);
+      state.currentMatchIndex = 0;
+    }
+
+    function startDoubleEliminationRound() {
+      const activeTeams = state.activeDoubleElimTeams.map(getTeam).filter(Boolean);
+      const undefeatedTeams = activeTeams.filter((team) => team.bracketLosses === 0);
+      const oneLossTeams = activeTeams.filter((team) => team.bracketLosses === 1);
+      state.currentRoundMatches = [];
+      state.currentRoundWinners = [];
+      state.roundNotice = "";
+
+      if (state.grandFinalResetPending && activeTeams.length === 2) {
+        state.currentRoundMatches.push(createMatch("Grand Final Reset", activeTeams[0], activeTeams[1], { bracket: "Grand Final" }));
+      } else if (undefeatedTeams.length === 1 && oneLossTeams.length === 1) {
+        const roundName = state.grandFinalResetPending ? "Grand Final Reset" : "Grand Final";
+        state.currentRoundMatches.push(createMatch(roundName, undefeatedTeams[0], oneLossTeams[0], { bracket: "Grand Final" }));
+      } else {
+        addDoubleEliminationBracketMatches(undefeatedTeams, "Winners Bracket");
+        addDoubleEliminationBracketMatches(oneLossTeams, "Losers Bracket");
+      }
+
+      if (state.currentRoundMatches.length === 0) {
+        const onlyTeam = activeTeams[0];
+        if (onlyTeam) {
+          state.championId = onlyTeam.id;
+          renderResults();
+          return;
+        }
+      }
+
+      state.matches.push(...state.currentRoundMatches);
+      state.currentMatchIndex = 0;
+    }
+
+    function addDoubleEliminationBracketMatches(teams, bracket) {
+      const shuffledTeams = shuffle(teams);
+      if (shuffledTeams.length === 1) {
+        state.currentRoundWinners.push(shuffledTeams[0]);
+        state.roundNotice += `${shuffledTeams[0].name} waits in the ${bracket}. `;
+        return;
+      }
+
+      if (shuffledTeams.length % 2 !== 0 && shuffledTeams.length > 1) {
+        const byeTeam = shuffledTeams.pop();
+        state.currentRoundWinners.push(byeTeam);
+        state.roundNotice += `${byeTeam.name} receives a ${bracket} bye. `;
+      }
+
+      for (let index = 0; index < shuffledTeams.length - 1; index += 2) {
+        const roundName = `${bracket} ${state.currentRoundNumber}`;
+        state.currentRoundMatches.push(createMatch(roundName, shuffledTeams[index], shuffledTeams[index + 1], { bracket }));
+      }
+    }
+
+    function currentMatch() {
+      return usesPointSystem()
+        ? state.matches[state.currentMatchIndex]
+        : state.currentRoundMatches[state.currentMatchIndex];
+    }
+
+    function stopTimer() {
+      if (timerIntervalId) {
+        window.clearInterval(timerIntervalId);
+        timerIntervalId = null;
+      }
+      timerRunning = false;
+    }
+
+    function updateTimerDisplay() {
+      $("timerDisplay").textContent = formatDuration(timerRemainingSeconds);
+    }
+
+    function resetTimerForMatch() {
+      stopTimer();
+      setDurationInputs("match", state.defaultDuration);
+      timerInitialSeconds = durationToSeconds(
+        state.defaultDuration.hours,
+        state.defaultDuration.minutes,
+        state.defaultDuration.seconds
+      );
+      timerRemainingSeconds = timerInitialSeconds;
+      updateTimerDisplay();
+    }
+
+    function startTimer() {
+      const duration = readDuration("match", "Match duration");
+      if (!duration) return;
+      stopTimer();
+      timerInitialSeconds = duration.totalSeconds;
+      timerRemainingSeconds = duration.totalSeconds;
+      runTimer();
+    }
+
+    function runTimer() {
+      if (timerRunning) return;
+      timerRunning = true;
+      updateTimerDisplay();
+      timerIntervalId = window.setInterval(() => {
+        timerRemainingSeconds -= 1;
+        updateTimerDisplay();
+        if (timerRemainingSeconds <= 0) {
+          stopTimer();
+          timerRemainingSeconds = 0;
+          updateTimerDisplay();
+          alert("The match has concluded.");
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      stopTimer();
+    }
+
+    function resetTimer() {
+      stopTimer();
+      timerRemainingSeconds = timerInitialSeconds;
+      updateTimerDisplay();
+    }
+
+    function renderMatch() {
+      if (usesPointSystem() && state.currentMatchIndex >= state.matches.length) {
+        finishRoundRobin();
+        return;
+      }
+
+      if (state.format === "knockout" && state.currentMatchIndex >= state.currentRoundMatches.length) {
+        finishKnockoutRound();
+        return;
+      }
+
+      if (state.format === "two_legged_knockout" && state.currentMatchIndex >= state.currentRoundMatches.length) {
+        finishTwoLeggedRound();
+        return;
+      }
+
+      if (state.format === "double_elimination" && state.currentMatchIndex >= state.currentRoundMatches.length) {
+        finishDoubleEliminationRound();
+        return;
+      }
+
+      const match = currentMatch();
+      const teamA = getTeam(match.teamAId);
+      const teamB = getTeam(match.teamBId);
+
+      showView("match");
+      $("formatBadge").textContent = formatName();
+      $("matchTitle").textContent = state.tournamentName;
+      $("cupTitle").textContent = "Tournament Cup";
+
+      if (usesPointSystem()) {
+        $("matchProgress").textContent = `${teamA.name} vs ${teamB.name} | Match ${state.currentMatchIndex + 1} of ${state.matches.length}`;
+      } else {
+        $("matchProgress").textContent = `${teamA.name} vs ${teamB.name} | ${match.roundName} - Match ${state.currentMatchIndex + 1} of ${state.currentRoundMatches.length}`;
+      }
+
+      resetTimerForMatch();
+      renderResultOptions(match);
+      renderScorePanel(match);
+      renderStatsTable(match);
+      renderSidePanel();
+
+      if (state.roundNotice && isEliminationFormat()) {
+        $("roundNotice").hidden = false;
+        $("roundNotice").textContent = state.roundNotice;
+        state.roundNotice = "";
+      } else {
+        $("roundNotice").hidden = true;
+        $("roundNotice").textContent = "";
+      }
+    }
+
+    function renderScorePanel(match) {
+      const teamA = getTeam(match.teamAId);
+      const teamB = getTeam(match.teamBId);
+      const showScores = isTwoLeggedFormat();
+      $("scorePanel").hidden = !showScores;
+      $("aggregateText").textContent = "";
+      if (!showScores) return;
+
+      $("scoreALabel").textContent = `${teamA.name} score`;
+      $("scoreBLabel").textContent = `${teamB.name} score`;
+      $("scoreA").value = "0";
+      $("scoreB").value = "0";
+      updateAggregatePreview(match);
+      $("scoreA").oninput = () => updateAggregatePreview(match);
+      $("scoreB").oninput = () => updateAggregatePreview(match);
+    }
+
+    function updateAggregatePreview(match) {
+      if (!isTwoLeggedFormat()) return;
+      const scoreA = toInt($("scoreA").value, 0);
+      const scoreB = toInt($("scoreB").value, 0);
+      const aggregate = calculateAggregate(match, scoreA, scoreB);
+      const teamA = getTeam(match.teamAId);
+      const teamB = getTeam(match.teamBId);
+
+      if (match.legNumber === 1) {
+        $("aggregateText").textContent = "First leg score will be saved. Aggregate is decided after the second leg.";
+        setTieBreakVisible(false, match);
+        return;
+      }
+
+      $("aggregateText").textContent = `Aggregate: ${teamA.name} ${aggregate[teamA.id]} - ${aggregate[teamB.id]} ${teamB.name}`;
+      setTieBreakVisible(aggregate[teamA.id] === aggregate[teamB.id], match);
+    }
+
+    function renderResultOptions(match) {
+      const teamA = getTeam(match.teamAId);
+      const teamB = getTeam(match.teamBId);
+      setTieBreakVisible(false, match);
+
+      if (usesPointSystem()) {
+        $("matchResult").innerHTML = `
+          <option value="">Choose result</option>
+          <option value="${teamA.id}">${escapeHtml(teamA.name)} wins</option>
+          <option value="${teamB.id}">${escapeHtml(teamB.name)} wins</option>
+          <option value="draw">Draw</option>
+        `;
+      } else if (isTwoLeggedFormat()) {
+        $("matchResult").innerHTML = `<option value="aggregate">Winner decided by aggregate score</option>`;
+      } else {
+        $("matchResult").innerHTML = `
+          <option value="">Choose result</option>
+          <option value="${teamA.id}">${escapeHtml(teamA.name)} wins</option>
+          <option value="${teamB.id}">${escapeHtml(teamB.name)} wins</option>
+          <option value="tie">Tie after regulation</option>
+        `;
+      }
+
+      $("matchResult").onchange = () => {
+        setTieBreakVisible($("matchResult").value === "tie", match);
+      };
+    }
+
+    function setTieBreakVisible(visible, match) {
+      const teamA = getTeam(match.teamAId);
+      const teamB = getTeam(match.teamBId);
+      $("tieBreakPanel").hidden = !visible;
+      $("tieBreakWinner").innerHTML = `
+        <option value="">Choose winner</option>
+        <option value="${teamA.id}">${escapeHtml(teamA.name)}</option>
+        <option value="${teamB.id}">${escapeHtml(teamB.name)}</option>
+      `;
+      $("tieBreakMethod").value = "";
+      $("extraTimePanel").hidden = true;
+    }
+
+    function renderStatsTable(match) {
+      const teams = [getTeam(match.teamAId), getTeam(match.teamBId)];
+      $("statsTableWrap").innerHTML = `
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Goals</th>
+              <th>Assists</th>
+              <th>Interceptions</th>
+              <th>Saves</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${teams.map((team) => `
+              <tr class="team-section-row"><td colspan="5">${escapeHtml(team.name)}</td></tr>
+              ${team.players.map((player) => {
+                const isGoalkeeper = player.id === team.goalkeeperId;
+                return `
+                  <tr>
+                    <td data-label="Player">${playerDisplayHtml(team, player)}</td>
+                    <td data-label="Goals"><input class="stat-input" data-team-id="${team.id}" data-player-id="${player.id}" data-stat="goals" type="number" min="0" value="0"></td>
+                    <td data-label="Assists"><input class="stat-input" data-team-id="${team.id}" data-player-id="${player.id}" data-stat="assists" type="number" min="0" value="0"></td>
+                    <td data-label="Interceptions"><input class="stat-input" data-team-id="${team.id}" data-player-id="${player.id}" data-stat="interceptions" type="number" min="0" value="0"></td>
+                    <td data-label="Saves"><input class="stat-input" data-team-id="${team.id}" data-player-id="${player.id}" data-stat="saves" type="number" min="0" value="0" ${isGoalkeeper ? "" : "disabled"}></td>
+                  </tr>
+                `;
+              }).join("")}
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderSidePanel() {
+      if (usesPointSystem()) {
+        $("sideTitle").textContent = "Standings";
+        $("sideContent").innerHTML = `
+          <table class="side-table">
+            <thead>
+              <tr><th>Team</th><th>W</th><th>D</th><th>L</th><th>G</th><th>Pts</th></tr>
+            </thead>
+            <tbody>
+              ${sortedRoundRobinTeams().map((team) => `
+                <tr>
+                  <td>${escapeHtml(team.name)}</td>
+                  <td>${team.wins}</td>
+                  <td>${team.draws}</td>
+                  <td>${team.losses}</td>
+                  <td>${teamTotalGoals(team)}</td>
+                  <td><strong>${team.points}</strong></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+        return;
+      }
+
+      $("sideTitle").textContent = shouldDisplayBracket() ? "Bracket" : "Match List";
+      const completed = state.matches.filter((match) => match.resultText);
+      $("sideContent").innerHTML = `
+        <div class="stack">
+          ${shouldDisplayBracket() ? renderBracket() : ""}
+          ${state.currentRoundWinners.length > 0 ? `
+            <div class="notice">
+              Through this round:<br>
+              ${state.currentRoundWinners.map((team) => escapeHtml(team.name)).join("<br>")}
+            </div>
+          ` : ""}
+          ${completed.length === 0 ? `<p class="muted">No completed matches yet.</p>` : completed.map((match) => `
+            <div class="team-card">${escapeHtml(match.resultText)}</div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderBracket() {
+      const groupedMatches = new Map();
+      state.matches.forEach((match) => {
+        const label = match.bracket || match.roundName;
+        if (!groupedMatches.has(label)) groupedMatches.set(label, []);
+        groupedMatches.get(label).push(match);
+      });
+
+      if (groupedMatches.size === 0) {
+        return `<p class="muted">The bracket will appear after matches are generated.</p>`;
+      }
+
+      return Array.from(groupedMatches.entries()).map(([roundName, matches]) => `
+        <section class="bracket-round">
+          <h3>${escapeHtml(roundName)}</h3>
+          ${matches.map((match) => {
+            const teamA = getTeam(match.teamAId);
+            const teamB = getTeam(match.teamBId);
+            const result = match.resultText || "Pending";
+            return `<div class="bracket-match">${escapeHtml(teamA.name)} vs ${escapeHtml(teamB.name)}<br>${escapeHtml(result)}</div>`;
+          }).join("")}
+        </section>
+      `).join("");
+    }
+
+    function submitMatch() {
+      const match = currentMatch();
+      const result = $("matchResult").value;
+      if (!result && !isTwoLeggedFormat()) {
+        alert(usesPointSystem() ? "Choose the match result." : "Choose the winning team or tie-break result.");
+        return;
+      }
+
+      const statValues = collectStatValues();
+      if (!statValues) return;
+
+      if (usesPointSystem()) {
+        applyRoundRobinResult(match, result);
+      } else if (state.format === "knockout") {
+        if (!applyKnockoutResult(match, result)) return;
+      } else if (state.format === "double_elimination") {
+        if (!applyDoubleEliminationResult(match, result)) return;
+      } else if (state.format === "two_legged_knockout") {
+        if (!applyTwoLeggedResult(match)) return;
+      }
+
+      statValues.forEach((entry) => {
+        const team = getTeam(entry.teamId);
+        const player = getPlayer(team, entry.playerId);
+        player.stats.goals += entry.goals;
+        player.stats.assists += entry.assists;
+        player.stats.interceptions += entry.interceptions;
+        player.stats.saves += entry.saves;
+        match.stats.push({
+          playerName: player.name,
+          teamName: team.name,
+          goals: entry.goals,
+          assists: entry.assists,
+          interceptions: entry.interceptions,
+          saves: entry.saves
+        });
+      });
+
+      state.currentMatchIndex += 1;
+      renderMatch();
+    }
+
+    function collectStatValues() {
+      const grouped = new Map();
+      const inputs = Array.from(document.querySelectorAll(".stat-input"));
+
+      for (const input of inputs) {
+        const value = toInt(input.value, -1);
+        if (value < 0) {
+          alert("All statistics must be zero or higher.");
+          return null;
+        }
+
+        const key = input.dataset.playerId;
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            teamId: input.dataset.teamId,
+            playerId: input.dataset.playerId,
+            goals: 0,
+            assists: 0,
+            interceptions: 0,
+            saves: 0
+          });
+        }
+        grouped.get(key)[input.dataset.stat] = value;
+      }
+
+      return Array.from(grouped.values()).map((entry) => {
+        const team = getTeam(entry.teamId);
+        if (entry.playerId !== team.goalkeeperId) entry.saves = 0;
+        return entry;
+      });
+    }
+
+    function applyRoundRobinResult(match, result) {
+      const teamA = getTeam(match.teamAId);
+      const teamB = getTeam(match.teamBId);
+
+      if (result === "draw") {
+        teamA.draws += 1;
+        teamB.draws += 1;
+        teamA.points += state.points.draw;
+        teamB.points += state.points.draw;
+        match.resultText = `${teamA.name} drew with ${teamB.name}`;
+        return;
+      }
+
+      const winner = getTeam(result);
+      const loser = winner.id === teamA.id ? teamB : teamA;
+      winner.wins += 1;
+      loser.losses += 1;
+      winner.points += state.points.win;
+      loser.points += state.points.loss;
+      match.winnerId = winner.id;
+      match.resultText = `${winner.name} defeated ${loser.name}`;
+    }
+
+    function applyKnockoutResult(match, result) {
+      const winnerId = result === "tie" ? validateTieBreak(match) : result;
+      if (!winnerId) return false;
+
+      const winner = getTeam(winnerId);
+      const loser = winner.id === match.teamAId ? getTeam(match.teamBId) : getTeam(match.teamAId);
+      match.winnerId = winner.id;
+      match.resultText = `${winner.name} defeated ${loser.name}${result === "tie" ? ` by ${match.tieBreakMethod}` : ""}`;
+      state.currentRoundWinners.push(winner);
+      return true;
+    }
+
+    function applyDoubleEliminationResult(match, result) {
+      const winnerId = result === "tie" ? validateTieBreak(match) : result;
+      if (!winnerId) return false;
+
+      const winner = getTeam(winnerId);
+      const loser = winner.id === match.teamAId ? getTeam(match.teamBId) : getTeam(match.teamAId);
+      match.winnerId = winner.id;
+      match.resultText = `${winner.name} defeated ${loser.name}${result === "tie" ? ` by ${match.tieBreakMethod}` : ""}`;
+
+      if (match.bracket === "Grand Final") {
+        if (winner.bracketLosses === 0) {
+          state.championId = winner.id;
+        } else if (!state.grandFinalResetPending) {
+          loser.bracketLosses += 1;
+          state.grandFinalResetPending = true;
+          state.currentRoundWinners = [winner, loser];
+          state.roundNotice = `${winner.name} won the first Grand Final. A reset match is required.`;
+        } else {
+          state.championId = winner.id;
+        }
+        return true;
+      }
+
+      loser.bracketLosses += 1;
+      if (loser.bracketLosses < 2) {
+        state.currentRoundWinners.push(loser);
+      }
+      state.currentRoundWinners.push(winner);
+      return true;
+    }
+
+    function applyTwoLeggedResult(match) {
+      const scoreA = toInt($("scoreA").value, -1);
+      const scoreB = toInt($("scoreB").value, -1);
+      if (scoreA < 0 || scoreB < 0) {
+        alert("Two-legged scores must be zero or higher.");
+        return false;
+      }
+
+      const teamA = getTeam(match.teamAId);
+      const teamB = getTeam(match.teamBId);
+      match.scoreA = scoreA;
+      match.scoreB = scoreB;
+
+      if (match.legNumber === 1) {
+        match.resultText = `${match.roundName}: ${teamA.name} ${scoreA} - ${scoreB} ${teamB.name}`;
+        return true;
+      }
+
+      const aggregate = calculateAggregate(match, scoreA, scoreB);
+      match.aggregateA = aggregate[teamA.id];
+      match.aggregateB = aggregate[teamB.id];
+      let winnerId = null;
+
+      if (aggregate[teamA.id] > aggregate[teamB.id]) {
+        winnerId = teamA.id;
+      } else if (aggregate[teamB.id] > aggregate[teamA.id]) {
+        winnerId = teamB.id;
+      } else {
+        winnerId = validateTieBreak(match);
+        if (!winnerId) return false;
+      }
+
+      const winner = getTeam(winnerId);
+      const loser = winner.id === teamA.id ? teamB : teamA;
+      match.winnerId = winner.id;
+      match.resultText = `${match.roundName}: ${teamA.name} ${scoreA} - ${scoreB} ${teamB.name}; aggregate ${teamA.name} ${aggregate[teamA.id]} - ${aggregate[teamB.id]} ${teamB.name}; ${winner.name} advances${aggregate[teamA.id] === aggregate[teamB.id] ? ` by ${match.tieBreakMethod}` : ""}`;
+      state.currentRoundWinners.push(winner);
+      return true;
+    }
+
+    function calculateAggregate(currentMatch, currentScoreA, currentScoreB) {
+      const aggregate = {
+        [currentMatch.teamAId]: currentScoreA,
+        [currentMatch.teamBId]: currentScoreB
+      };
+
+      state.matches
+        .filter((match) => match.legGroupId === currentMatch.legGroupId && match.id !== currentMatch.id && match.scoreA !== null)
+        .forEach((match) => {
+          aggregate[match.teamAId] = (aggregate[match.teamAId] || 0) + match.scoreA;
+          aggregate[match.teamBId] = (aggregate[match.teamBId] || 0) + match.scoreB;
+        });
+
+      return aggregate;
+    }
+
+    function validateTieBreak(match) {
+      const method = $("tieBreakMethod").value;
+      const winnerId = $("tieBreakWinner").value;
+      if (!method) {
+        alert("Choose a tie break method.");
+        return null;
+      }
+      if (!winnerId) {
+        alert("Choose the tie break winner.");
+        return null;
+      }
+      if (method === "Extra Time") {
+        const duration = readDuration("extra", "Extra time duration");
+        if (!duration) return null;
+        match.extraTimeDuration = {
+          hours: duration.hours,
+          minutes: duration.minutes,
+          seconds: duration.seconds
+        };
+      }
+      match.tieBreakMethod = method;
+      match.tieBreakWinnerId = winnerId;
+      return winnerId;
+    }
+
+    function finishRoundRobin() {
+      const resolved = resolveRoundRobinChampion();
+      if (Array.isArray(resolved)) {
+        state.pendingTieTeamIds = resolved.map((team) => team.id);
+      } else {
+        state.championId = resolved.id;
+      }
+      renderResults();
+    }
+
+    function resolveRoundRobinChampion() {
+      const topPoints = Math.max(...state.teams.map((team) => team.points));
+      const tiedByPoints = state.teams.filter((team) => team.points === topPoints);
+      if (tiedByPoints.length === 1) return tiedByPoints[0];
+
+      const topGoals = Math.max(...tiedByPoints.map((team) => teamTotalGoals(team)));
+      const tiedByGoals = tiedByPoints.filter((team) => teamTotalGoals(team) === topGoals);
+      if (tiedByGoals.length === 1) return tiedByGoals[0];
+
+      return tiedByGoals;
+    }
+
+    function finishKnockoutRound() {
+      if (state.currentRoundWinners.length === 1) {
+        state.championId = state.currentRoundWinners[0].id;
+        renderResults();
+        return;
+      }
+
+      state.currentRoundNumber += 1;
+      startKnockoutRound(state.currentRoundWinners);
+      renderMatch();
+    }
+
+    function finishTwoLeggedRound() {
+      if (state.currentRoundWinners.length === 1) {
+        state.championId = state.currentRoundWinners[0].id;
+        renderResults();
+        return;
+      }
+
+      state.currentRoundNumber += 1;
+      startTwoLeggedRound(state.currentRoundWinners);
+      renderMatch();
+    }
+
+    function finishDoubleEliminationRound() {
+      if (state.championId) {
+        renderResults();
+        return;
+      }
+
+      state.activeDoubleElimTeams = state.currentRoundWinners
+        .filter((team) => team.bracketLosses < 2)
+        .map((team) => team.id);
+
+      const uniqueActiveIds = [...new Set(state.activeDoubleElimTeams)];
+      state.activeDoubleElimTeams = uniqueActiveIds;
+
+      if (state.activeDoubleElimTeams.length === 1) {
+        state.championId = state.activeDoubleElimTeams[0];
+        renderResults();
+        return;
+      }
+
+      state.currentRoundNumber += 1;
+      startDoubleEliminationRound();
+      if (!state.championId) renderMatch();
+    }
+
+    function sortedRoundRobinTeams() {
+      return [...state.teams].sort((teamA, teamB) => {
+        return (teamB.points - teamA.points)
+          || (teamTotalGoals(teamB) - teamTotalGoals(teamA))
+          || (teamB.wins - teamA.wins)
+          || (teamB.draws - teamA.draws)
+          || teamA.name.localeCompare(teamB.name);
+      });
+    }
+
+    function renderResults() {
+      showView("results");
+      $("resultsSubtitle").textContent = `${state.tournamentName} | Tournament Cup | ${formatName()}`;
+
+      if (state.pendingTieTeamIds.length > 0 && !state.championId) {
+        const tiedTeams = state.pendingTieTeamIds.map(getTeam);
+        $("tieBreakBox").hidden = false;
+        $("tieBreakBox").innerHTML = `
+          <strong>Tie-break required.</strong><br>
+          These teams are tied on points and total goals:
+          <div class="form-row" style="margin-top: 12px;">
+            <select id="manualChampionSelect">
+              ${tiedTeams.map((team) => `<option value="${team.id}">${escapeHtml(team.name)}</option>`).join("")}
+            </select>
+            <button id="chooseChampionBtn" class="primary">Choose Winner</button>
+          </div>
+        `;
+        $("chooseChampionBtn").addEventListener("click", () => {
+          state.championId = $("manualChampionSelect").value;
+          state.pendingTieTeamIds = [];
+          renderResults();
+        });
+        $("resultsText").textContent = "Choose the tied tournament winner to complete the results.";
+        return;
+      }
+
+      $("tieBreakBox").hidden = true;
+      $("tieBreakBox").innerHTML = "";
+      $("resultsText").textContent = buildResultsText();
+    }
+
+    function buildResultsText() {
+      const champion = getTeam(state.championId);
+      const lines = [
+        `Tournament: ${state.tournamentName}`,
+        "Title: Tournament Cup",
+        `Format: ${formatName()}`,
+        `Winning team: ${champion.name}`,
+        "",
+        "Winning team players:"
+      ];
+
+      champion.players.forEach((player) => {
+        lines.push(`  - ${playerLabel(champion, player)}`);
+      });
+
+      if (usesPointSystem()) {
+        lines.push("", "Final standings:");
+        sortedRoundRobinTeams().forEach((team, index) => {
+          lines.push(`  ${index + 1}. ${team.name} - ${team.points} pts, ${teamTotalGoals(team)} goals`);
+        });
+      }
+
+      if (isEliminationFormat()) {
+        lines.push("", "Completed bracket/matches:");
+        state.matches
+          .filter((match) => match.resultText)
+          .forEach((match) => lines.push(`  - ${match.resultText}`));
+      }
+
+      const playerRecords = state.teams.flatMap((team) => team.players.map((player) => ({ team, player })));
+      const goalkeeperRecords = state.teams.map((team) => ({ team, player: teamGoalkeeper(team) }));
+
+      lines.push(
+        "",
+        awardLine("Top scorer", playerRecords, (player) => player.stats.goals, "goals"),
+        awardLine("Top assister", playerRecords, (player) => player.stats.assists, "assists"),
+        awardLine("Best keeper", goalkeeperRecords, (player) => player.stats.saves, "saves"),
+        awardLine("Best Defender", playerRecords, (player) => player.stats.interceptions, "interceptions"),
+        awardLine("POTM", playerRecords, (player) => player.stats.goals + player.stats.assists + player.stats.interceptions, "total")
+      );
+
+      return lines.join("\n");
+    }
+
+    function awardLine(title, records, scorer, unit) {
+      const bestScore = Math.max(...records.map(({ player }) => scorer(player)));
+      const winners = records.filter(({ player }) => scorer(player) === bestScore);
+      const names = winners.map(({ team, player }) => `${player.name} (${team.name})`).join(", ");
+      return `${title}: ${names} (${bestScore} ${unit})`;
+    }
+
+    function exportData() {
+      if (!syncSetupFromInputs()) return;
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeName = (state.tournamentName || "football-tournament").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "");
+      link.href = url;
+      link.download = `${safeName || "football-tournament"}-data.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const importedState = JSON.parse(reader.result);
+          Object.assign(state, importedState);
+          loadStateIntoInputs();
+          if (state.view === "match") renderMatch();
+          else if (state.view === "results") renderResults();
+          else if (state.view === "home") navigateTo("home");
+          else {
+            navigateTo("setup");
+            refreshSetup();
+          }
+          showToast("Data imported");
+        } catch (_error) {
+          alert("Could not import this file.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function loadStateIntoInputs() {
+      state.theme = state.theme || "light";
+      state.lastTeamsRandomized = Boolean(state.lastTeamsRandomized);
+      applyTheme();
+      $("tournamentName").value = state.tournamentName || "";
+      $("format").value = state.format || "round_robin";
+      $("teamCount").value = String(state.teamCount || 2);
+      $("winPoints").value = String(state.points?.win ?? 3);
+      $("drawPoints").value = String(state.points?.draw ?? 1);
+      $("lossPoints").value = String(state.points?.loss ?? 0);
+      state.defaultDuration = state.defaultDuration || { hours: 0, minutes: 45, seconds: 0 };
+      setDurationInputs("duration", state.defaultDuration);
+      refreshSetup();
+      resetTeamForm();
+    }
+
+    function newTournament() {
+      if (!confirm("Start a new tournament? Current unsaved data will be cleared.")) return;
+      Object.assign(state, {
+        view: "setup",
+        theme: "light",
+        tournamentName: "",
+        format: "round_robin",
+        teamCount: 2,
+        points: { win: 3, draw: 1, loss: 0 },
+        defaultDuration: { hours: 0, minutes: 45, seconds: 0 },
+        teams: [],
+        matches: [],
+        currentMatchIndex: 0,
+        currentRoundMatches: [],
+        currentRoundWinners: [],
+        currentRoundNumber: 1,
+        activeDoubleElimTeams: [],
+        grandFinalResetPending: false,
+        roundNotice: "",
+        championId: null,
+        pendingTieTeamIds: [],
+        lastTeamsRandomized: false
+      });
+      loadStateIntoInputs();
+      clearRandomPlayers();
+      navigateTo("setup");
+    }
+
+    $("mobileMenuBtn").addEventListener("click", () => {
+      setMobileMenu(!$("topActions").classList.contains("open"));
+    });
+    $("homeBtn").addEventListener("click", () => navigateTo("home"));
+    $("homeStartBtn").addEventListener("click", () => navigateTo("setup"));
+    $("themeToggleBtn").addEventListener("click", toggleTheme);
+    $("format").addEventListener("change", refreshSetup);
+    $("teamCount").addEventListener("input", refreshSetup);
+    $("playerCount").addEventListener("input", () => buildPlayerFields());
+    $("saveTeamBtn").addEventListener("click", saveTeam);
+    $("cancelEditBtn").addEventListener("click", resetTeamForm);
+    $("addRandomPlayerBtn").addEventListener("click", () => addRandomPlayerRow());
+    $("clearRandomPlayersBtn").addEventListener("click", clearRandomPlayers);
+    $("randomizeBtn").addEventListener("click", () => randomizeTeams(false));
+    $("levelRandomizeBtn").addEventListener("click", () => randomizeTeams(true));
+    $("startTournamentBtn").addEventListener("click", startTournament);
+    $("submitMatchBtn").addEventListener("click", submitMatch);
+    $("timerStartBtn").addEventListener("click", startTimer);
+    $("timerPauseBtn").addEventListener("click", pauseTimer);
+    $("timerResumeBtn").addEventListener("click", runTimer);
+    $("timerResetBtn").addEventListener("click", resetTimer);
+    $("tieBreakMethod").addEventListener("change", () => {
+      $("extraTimePanel").hidden = $("tieBreakMethod").value !== "Extra Time";
+    });
+    $("newTournamentBtn").addEventListener("click", newTournament);
+    $("exportBtn").addEventListener("click", exportData);
+    $("exportResultsBtn").addEventListener("click", exportData);
+    $("importBtn").addEventListener("click", () => $("importFile").click());
+    $("importFile").addEventListener("change", (event) => importData(event.target.files[0]));
+
+    applyTheme();
+    buildPlayerFields([""]);
+    clearRandomPlayers();
+    refreshSetup();
+    navigateTo("home");
+  </script>
+</body>
+</html>
